@@ -14,6 +14,11 @@ export class CreateUserDto {
   @IsNotEmpty()
   hobbies: string[];
 
+  @IsString()
+  @IsNotEmpty()
   login: string;
+
+  @IsString()
+  @IsNotEmpty()
   password: string;
 }
