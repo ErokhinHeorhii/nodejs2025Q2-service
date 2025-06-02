@@ -1,13 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Album } from './interfaces/album.interface';
+import { Album } from './entities/album.entity';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { generateUuid } from '../common/utils/generate-uuid.util';
+import { initialAlbums } from '../data/initial-data';
 import { TracksService } from '../tracks/tracks.service';
 
 @Injectable()
 export class AlbumsService {
-  private albums: Album[] = [];
+  private albums: Album[] = [...initialAlbums];
 
   constructor(private readonly tracksService: TracksService) {}
 
@@ -23,12 +24,12 @@ export class AlbumsService {
     return album;
   }
 
-  create(createAlbumDto: CreateAlbumDto): Album {
+  create(createAlbumDto: CreateAlbumDto, testId?: string): Album {
     const newAlbum: Album = {
-      id: generateUuid(),
+      id: testId || generateUuid(),
       name: createAlbumDto.name,
       year: createAlbumDto.year,
-      artistId: createAlbumDto.artistId,
+      artistId: createAlbumDto.artistId || null,
     };
 
     this.albums.push(newAlbum);
@@ -45,7 +46,7 @@ export class AlbumsService {
       ...this.albums[albumIndex],
       name: updateAlbumDto.name,
       year: updateAlbumDto.year,
-      artistId: updateAlbumDto.artistId,
+      artistId: updateAlbumDto.artistId || null,
     };
 
     this.albums[albumIndex] = updatedAlbum;
@@ -58,6 +59,7 @@ export class AlbumsService {
       throw new NotFoundException('Album not found');
     }
 
+    // Set albumId to null for all tracks that reference this album
     const tracks = this.tracksService.findAll();
     tracks.forEach(track => {
       if (track.albumId === id) {

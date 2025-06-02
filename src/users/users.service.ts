@@ -2,22 +2,26 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
-import { User } from './interfaces/user.interface';
+import { User } from './entities/user.entity';
 import { UserResponse } from './interfaces/user-response.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { generateUuid } from '../common/utils/generate-uuid.util';
+import { initialUsers } from '../data/initial-data';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
+  private users: User[] = [...initialUsers];
+
+  private mapToResponse(user: User): UserResponse {
+    const { password, ...userResponse } = user;
+    return userResponse;
+  }
 
   findAll(): UserResponse[] {
-    return this.users.map((user) => {
-      const { password: _, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
+    return this.users.map(user => this.mapToResponse(user));
   }
 
   findOne(id: string): UserResponse {
@@ -25,8 +29,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return this.mapToResponse(user);
   }
 
   create(createUserDto: CreateUserDto): UserResponse {
@@ -40,8 +43,7 @@ export class UsersService {
     };
 
     this.users.push(newUser);
-    const { password: _, ...userWithoutPassword } = newUser;
-    return userWithoutPassword;
+    return this.mapToResponse(newUser);
   }
 
   update(id: string, updatePasswordDto: UpdatePasswordDto): UserResponse {
@@ -50,21 +52,19 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const user = this.users[userIndex];
-    if (user.password !== updatePasswordDto.oldPassword) {
-      throw new ForbiddenException('Old password is wrong');
+    if (this.users[userIndex].password !== updatePasswordDto.oldPassword) {
+      throw new BadRequestException('Old password is incorrect');
     }
 
     const updatedUser: User = {
-      ...user,
+      ...this.users[userIndex],
       password: updatePasswordDto.newPassword,
-      version: user.version + 1,
+      version: this.users[userIndex].version + 1,
       updatedAt: Date.now(),
     };
 
     this.users[userIndex] = updatedUser;
-    const { password: _, ...userWithoutPassword } = updatedUser;
-    return userWithoutPassword;
+    return this.mapToResponse(updatedUser);
   }
 
   remove(id: string): void {
@@ -72,6 +72,7 @@ export class UsersService {
     if (userIndex === -1) {
       throw new NotFoundException('User not found');
     }
+
     this.users.splice(userIndex, 1);
   }
 }

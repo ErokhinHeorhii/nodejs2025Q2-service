@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Track } from './interfaces/track.interface';
+import { Track } from './entities/track.entity';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { generateUuid } from '../common/utils/generate-uuid.util';
+import { initialTracks } from '../data/initial-data';
 
 @Injectable()
 export class TracksService {
-  private tracks: Track[] = [];
+  private tracks: Track[] = [...initialTracks];
 
   findAll(): Track[] {
     return this.tracks;
@@ -24,8 +25,8 @@ export class TracksService {
     const newTrack: Track = {
       id: generateUuid(),
       name: createTrackDto.name,
-      artistId: createTrackDto.artistId,
-      albumId: createTrackDto.albumId,
+      artistId: createTrackDto.artistId || null,
+      albumId: createTrackDto.albumId || null,
       duration: createTrackDto.duration,
     };
 
@@ -42,8 +43,8 @@ export class TracksService {
     const updatedTrack: Track = {
       ...this.tracks[trackIndex],
       name: updateTrackDto.name,
-      artistId: updateTrackDto.artistId,
-      albumId: updateTrackDto.albumId,
+      artistId: updateTrackDto.artistId || null,
+      albumId: updateTrackDto.albumId || null,
       duration: updateTrackDto.duration,
     };
 
@@ -56,6 +57,7 @@ export class TracksService {
     if (trackIndex === -1) {
       throw new NotFoundException('Track not found');
     }
+
     this.tracks.splice(trackIndex, 1);
   }
 } 
