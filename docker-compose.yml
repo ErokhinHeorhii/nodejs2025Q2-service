@@ -21,9 +21,13 @@ services:
     volumes:
       - ./:/app
       - /app/node_modules
+    networks:
+      - app-network
 
   postgres:
-    image: postgres:15
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
     container_name: postgres
     restart: always
     ports:
@@ -34,6 +38,12 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=home_library
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data: 
