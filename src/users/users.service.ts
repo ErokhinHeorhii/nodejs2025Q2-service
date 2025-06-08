@@ -4,75 +4,75 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserResponse } from './interfaces/user-response.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { generateUuid } from '../common/utils/generate-uuid.util';
-import { initialUsers } from '../data/initial-data';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [...initialUsers];
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+  ) {}
 
   private mapToResponse(user: User): UserResponse {
     const { password, ...userResponse } = user;
     return userResponse;
   }
 
-  findAll(): UserResponse[] {
-    return this.users.map(user => this.mapToResponse(user));
+  async findAll(): Promise<UserResponse[]> {
+    const users = await this.usersRepository.find();
+    return users.map(this.mapToResponse);
   }
 
-  findOne(id: string): UserResponse {
-    const user = this.users.find((user) => user.id === id);
+  async findOne(id: string): Promise<UserResponse> {
+    const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
     return this.mapToResponse(user);
   }
 
-  create(createUserDto: CreateUserDto): UserResponse {
-    const newUser: User = {
-      id: generateUuid(),
-      login: createUserDto.login,
-      password: createUserDto.password,
-      version: 1,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-
-    this.users.push(newUser);
-    return this.mapToResponse(newUser);
+  async create(createUserDto: CreateUserDto): Promise<UserResponse> {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    const newUser = this.usersRepository.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+    const savedUser = await this.usersRepository.save(newUser);
+    return this.mapToResponse(savedUser);
   }
 
-  update(id: string, updatePasswordDto: UpdatePasswordDto): UserResponse {
-    const userIndex = this.users.findIndex((user) => user.id === id);
-    if (userIndex === -1) {
+  async update(id: string, updatePasswordDto: UpdatePasswordDto): Promise<UserResponse> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    if (this.users[userIndex].password !== updatePasswordDto.oldPassword) {
-      throw new BadRequestException('Old password is incorrect');
+    const isPasswordValid = await bcrypt.compare(
+      updatePasswordDto.oldPassword,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      throw new ForbiddenException('Old password is incorrect');
     }
 
-    const updatedUser: User = {
-      ...this.users[userIndex],
-      password: updatePasswordDto.newPassword,
-      version: this.users[userIndex].version + 1,
-      updatedAt: Date.now(),
-    };
+    const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, 10);
+    user.password = hashedPassword;
+    user.version += 1;
 
-    this.users[userIndex] = updatedUser;
+    const updatedUser = await this.usersRepository.save(user);
     return this.mapToResponse(updatedUser);
   }
 
-  remove(id: string): void {
-    const userIndex = this.users.findIndex((user) => user.id === id);
-    if (userIndex === -1) {
+  async remove(id: string): Promise<void> {
+    const result = await this.usersRepository.delete(id);
+    if (result.affected === 0) {
       throw new NotFoundException('User not found');
     }
-
-    this.users.splice(userIndex, 1);
   }
 }
