@@ -1,165 +1,87 @@
 # Home Library Service
 
-A REST API service for managing a home library of music tracks, albums, artists, and user favorites.
-
 ## Description
 
-This service provides endpoints for managing:
-- Users
-- Tracks
-- Albums
-- Artists
-- Favorites
-
-## Installation
-
-```bash
-$ npm install
-```
-
-## Running the app
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Environment Variables
-
-Create a `.env` file in the root directory with the following variables:
-```
-PORT=4000
-```
-
-## API Documentation
-
-The OpenAPI specification is available in the `doc` folder.
-
-## Testing
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## API Endpoints
-
-### Users
-- GET /users - Get all users
-- GET /users/:id - Get user by id
-- POST /users - Create user
-- PUT /users/:id - Update user
-- DELETE /users/:id - Delete user
-
-### Tracks
-- GET /tracks - Get all tracks
-- GET /tracks/:id - Get track by id
-- POST /tracks - Create track
-- PUT /tracks/:id - Update track
-- DELETE /tracks/:id - Delete track
-
-### Albums
-- GET /albums - Get all albums
-- GET /albums/:id - Get album by id
-- POST /albums - Create album
-- PUT /albums/:id - Update album
-- DELETE /albums/:id - Delete album
-
-### Artists
-- GET /artists - Get all artists
-- GET /artists/:id - Get artist by id
-- POST /artists - Create artist
-- PUT /artists/:id - Update artist
-- DELETE /artists/:id - Delete artist
-
-### Favorites
-- GET /favs - Get all favorites
-- POST /favs/track/:id - Add track to favorites
-- POST /favs/album/:id - Add album to favorites
-- POST /favs/artist/:id - Add artist to favorites
-- DELETE /favs/track/:id - Remove track from favorites
-- DELETE /favs/album/:id - Remove album from favorites
-- DELETE /favs/artist/:id - Remove artist from favorites
+Home Library Service is a REST API service for managing a home library of music tracks, albums, artists, and user favorites. The service is built using NestJS framework and uses PostgreSQL as a database with TypeORM for data management.
 
 ## Prerequisites
 
-- Git - [Download & Install Git](https://git-scm.com/downloads).
-- Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+- Node.js (version 22.14.0 or higher)
+- Docker and Docker Compose
+- Docker Hub account
 
-## Downloading
+## Installation
 
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd home-library-service
 ```
-git clone {repository URL}
-```
 
-## Installing NPM modules
-
-```
+2. Install dependencies:
+```bash
 npm install
 ```
 
-## Running application
-
+3. Create a `.env` file in the root directory with the following content:
 ```
-npm start
+PORT=4000
+NODE_ENV=development
 ```
 
-After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+## Running the application
+
+Build and run the application using Docker Compose:
+```bash
+docker-compose up --build
+```
+
+The application will be available at `http://localhost:4000`.
+
+## API Documentation
+
+Once the application is running, you can access the API documentation at:
+```
+http://localhost:4000/doc
+```
+
+## Docker Configuration
+
+The project includes the following Docker-related files:
+
+- `.dockerignore` - Specifies files and directories to be excluded from Docker builds
+- `Dockerfile` - Configuration for building the application image
+- `Dockerfile.postgres` - Configuration for building the PostgreSQL database image
+- `docker-compose.yml` - Configuration for running the multi-container application
+
+### Docker Images
+
+The application uses two Docker images:
+1. Node.js application image (based on node:20-alpine)
+2. PostgreSQL database image (based on postgres:15)
+
+### Docker Network
+
+The containers communicate through a custom network defined in `docker-compose.yml`.
+
+## Database
+
+The application uses PostgreSQL as its database with the following tables:
+- Users
+- Artists
+- Albums
+- Tracks
+- Favorites
+
+TypeORM is used as the ORM for database operations.
 
 ## Testing
 
-After application running open new terminal and enter:
-
-To run all tests without authorization
-
-```
-npm run test
+To run the tests (make sure Docker containers are running):
+```bash
+npm test
 ```
 
-To run only one of all test suites
+## License
 
-```
-npm run test -- <path to suite>
-```
-
-To run all test with authorization
-
-```
-npm run test:auth
-```
-
-To run only specific test suite with authorization
-
-```
-npm run test:auth -- <path to suite>
-```
-
-### Auto-fix and format
-
-```
-npm run lint
-```
-
-```
-npm run format
-```
-
-### Debugging in VSCode
-
-Press <kbd>F5</kbd> to debug.
-
-For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+MIT
