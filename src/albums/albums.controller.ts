@@ -48,4 +48,4 @@ export class AlbumsController {
   remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.albumsService.remove(id);
   }
-} 
+}

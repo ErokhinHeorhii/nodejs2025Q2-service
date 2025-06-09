@@ -17,7 +17,8 @@ import { Track } from './tracks/entities/track.entity';
       type: 'postgres',
       url: process.env.DATABASE_URL,
       entities: [User, Artist, Album, Track],
-      synchronize: true, // только для разработки!
+      synchronize: true,
+      autoLoadEntities: true,
     }),
     UsersModule,
     ArtistsModule,

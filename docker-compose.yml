@@ -1,43 +1,40 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      target: production
-    container_name: music_service_app
-    restart: always
-    ports:
-      - "4000:4000"
-    depends_on:
-      - postgres
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/home_library
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - JWT_SECRET_REFRESH_KEY=${JWT_SECRET_REFRESH_KEY}
-      - TOKEN_EXPIRE_TIME=${TOKEN_EXPIRE_TIME}
-      - TOKEN_REFRESH_EXPIRE_TIME=${TOKEN_REFRESH_EXPIRE_TIME}
-      - CRYPT_SALT=${CRYPT_SALT}
-    volumes:
-      - ./:/app
-      - /app/node_modules
-    networks:
-      - app-network
-
   postgres:
     build:
       context: .
       dockerfile: Dockerfile.postgres
-    container_name: postgres
-    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: home_library
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=home_library
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/home_library
+      - PORT=4000
     networks:
       - app-network
 

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { ArtistsService } from '../artists/artists.service';
 import { AlbumsService } from '../albums/albums.service';
 import { TracksService } from '../tracks/tracks.service';
@@ -20,34 +24,34 @@ export class FavoritesService {
 
   findAll() {
     const artists = this.favoriteArtists
-      .map(id => {
+      .map((id) => {
         try {
           return this.artistsService.findOne(id);
         } catch {
           return null;
         }
       })
-      .filter(artist => artist !== null);
-    
+      .filter((artist) => artist !== null);
+
     const albums = this.favoriteAlbums
-      .map(id => {
+      .map((id) => {
         try {
           return this.albumsService.findOne(id);
         } catch {
           return null;
         }
       })
-      .filter(album => album !== null);
-    
+      .filter((album) => album !== null);
+
     const tracks = this.favoriteTracks
-      .map(id => {
+      .map((id) => {
         try {
           return this.tracksService.findOne(id);
         } catch {
           return null;
         }
       })
-      .filter(track => track !== null);
+      .filter((track) => track !== null);
 
     return {
       artists,
@@ -112,4 +116,4 @@ export class FavoritesService {
     }
     this.favoriteTracks.splice(index, 1);
   }
-} 
+}

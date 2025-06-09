@@ -5,6 +5,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Enable CORS
+  app.enableCors();
+  
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -14,7 +18,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Home Library Service')
-    .setDescription('A REST API service for managing a home library of music tracks, albums, artists, and user favorites.')
+    .setDescription(
+      'A REST API service for managing a home library of music tracks, albums, artists, and user favorites.',
+    )
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);

@@ -16,4 +16,4 @@ import { Track } from './entities/track.entity';
   providers: [TracksService],
   exports: [TracksService],
 })
-export class TracksModule {} 
+export class TracksModule {}

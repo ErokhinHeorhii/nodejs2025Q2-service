@@ -16,4 +16,4 @@ import { Album } from './entities/album.entity';
   providers: [AlbumsService],
   exports: [AlbumsService],
 })
-export class AlbumsModule {} 
+export class AlbumsModule {}

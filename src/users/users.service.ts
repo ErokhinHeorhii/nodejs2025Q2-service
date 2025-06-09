@@ -47,7 +47,10 @@ export class UsersService {
     return this.mapToResponse(savedUser);
   }
 
-  async update(id: string, updatePasswordDto: UpdatePasswordDto): Promise<UserResponse> {
+  async update(
+    id: string,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<UserResponse> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');

@@ -27,20 +27,28 @@ export class AlbumsService {
   }
 
   async create(createAlbumDto: CreateAlbumDto): Promise<Album> {
-    const newAlbum = this.albumsRepository.create({
-      ...createAlbumDto,
-      artist: null,
+    const album = this.albumsRepository.create({
+      name: createAlbumDto.name,
+      year: createAlbumDto.year,
+      artistId: createAlbumDto.artistId || null,
     });
-    return this.albumsRepository.save(newAlbum);
+    return this.albumsRepository.save(album);
   }
 
   async update(id: string, updateAlbumDto: UpdateAlbumDto): Promise<Album> {
-    const album = await this.albumsRepository.findOne({ where: { id } });
-    if (!album) {
-      throw new NotFoundException('Album not found');
+    const album = await this.findOne(id);
+    
+    // Only update fields that are provided
+    if (updateAlbumDto.name !== undefined) {
+      album.name = updateAlbumDto.name;
+    }
+    if (updateAlbumDto.year !== undefined) {
+      album.year = updateAlbumDto.year;
+    }
+    if (updateAlbumDto.artistId !== undefined) {
+      album.artistId = updateAlbumDto.artistId;
     }
 
-    Object.assign(album, updateAlbumDto);
     return this.albumsRepository.save(album);
   }
 
@@ -54,8 +62,10 @@ export class AlbumsService {
     const tracks = await this.tracksService.findAll();
     await Promise.all(
       tracks
-        .filter(track => track.albumId === id)
-        .map(track => this.tracksService.update(track.id, { ...track, albumId: null }))
+        .filter((track) => track.albumId === id)
+        .map((track) =>
+          this.tracksService.update(track.id, { ...track, albumId: null }),
+        ),
     );
   }
-} 
+}

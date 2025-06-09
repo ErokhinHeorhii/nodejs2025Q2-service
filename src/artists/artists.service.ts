@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { Artist } from './entities/artist.entity';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { generateUuid } from '../common/utils/generate-uuid.util';
 import { TracksService } from '../tracks/tracks.service';
 import { AlbumsService } from '../albums/albums.service';
 
@@ -30,17 +29,24 @@ export class ArtistsService {
   }
 
   async create(createArtistDto: CreateArtistDto): Promise<Artist> {
-    const newArtist = this.artistsRepository.create(createArtistDto);
-    return this.artistsRepository.save(newArtist);
+    const artist = this.artistsRepository.create({
+      name: createArtistDto.name,
+      grammy: createArtistDto.grammy,
+    });
+    return this.artistsRepository.save(artist);
   }
 
   async update(id: string, updateArtistDto: UpdateArtistDto): Promise<Artist> {
-    const artist = await this.artistsRepository.findOne({ where: { id } });
-    if (!artist) {
-      throw new NotFoundException('Artist not found');
+    const artist = await this.findOne(id);
+    
+    // Only update fields that are provided
+    if (updateArtistDto.name !== undefined) {
+      artist.name = updateArtistDto.name;
+    }
+    if (updateArtistDto.grammy !== undefined) {
+      artist.grammy = updateArtistDto.grammy;
     }
 
-    Object.assign(artist, updateArtistDto);
     return this.artistsRepository.save(artist);
   }
 
@@ -52,18 +58,22 @@ export class ArtistsService {
 
     // Set artistId to null for all tracks that reference this artist
     const tracks = await this.tracksService.findAll();
-    tracks.forEach(track => {
-      if (track.artistId === id) {
-        this.tracksService.update(track.id, { ...track, artistId: null });
-      }
-    });
+    await Promise.all(
+      tracks
+        .filter((track) => track.artistId === id)
+        .map((track) =>
+          this.tracksService.update(track.id, { ...track, artistId: null }),
+        ),
+    );
 
     // Set artistId to null for all albums that reference this artist
     const albums = await this.albumsService.findAll();
-    albums.forEach(album => {
-      if (album.artistId === id) {
-        this.albumsService.update(album.id, { ...album, artistId: null });
-      }
-    });
+    await Promise.all(
+      albums
+        .filter((album) => album.artistId === id)
+        .map((album) =>
+          this.albumsService.update(album.id, { ...album, artistId: null }),
+        ),
+    );
   }
-} 
+}

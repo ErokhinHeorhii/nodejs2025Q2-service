@@ -48,4 +48,4 @@ export class ArtistsController {
   remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.artistsService.remove(id);
   }
-} 
+}
