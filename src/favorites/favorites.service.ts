@@ -3,12 +3,12 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Favorites } from './entities/favorites.entity';
 import { ArtistsService } from '../artists/artists.service';
 import { AlbumsService } from '../albums/albums.service';
 import { TracksService } from '../tracks/tracks.service';
-import { Artist } from '../artists/entities/artist.entity';
-import { Album } from '../albums/entities/album.entity';
-import { Track } from '../tracks/entities/track.entity';
 
 @Injectable()
 export class FavoritesService {
@@ -20,6 +20,8 @@ export class FavoritesService {
     private readonly artistsService: ArtistsService,
     private readonly albumsService: AlbumsService,
     private readonly tracksService: TracksService,
+    @InjectRepository(Favorites)
+    private readonly favoritesRepository: Repository<Favorites>,
   ) {}
 
   async findAll() {

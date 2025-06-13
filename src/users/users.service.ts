@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,11 +15,12 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   private mapToResponse(user: User): UserResponse {
-    const { password, ...userResponse } = user;
+    const userResponse = { ...user } as any;
+    delete userResponse.password;
     return userResponse;
   }
 
@@ -37,14 +37,16 @@ export class UsersService {
     return this.mapToResponse(user);
   }
 
-  async create(createUserDto: CreateUserDto): Promise<UserResponse> {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    const newUser = this.usersRepository.create({
-      ...createUserDto,
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const salt = await bcrypt.genSalt(Number(process.env.CRYPT_SALT));
+    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+
+    const user = this.usersRepository.create({
+      login: createUserDto.login,
       password: hashedPassword,
     });
-    const savedUser = await this.usersRepository.save(newUser);
-    return this.mapToResponse(savedUser);
+
+    return this.usersRepository.save(user);
   }
 
   async update(

@@ -44,7 +44,7 @@ export class AlbumsService {
 
   async update(id: string, updateAlbumDto: UpdateAlbumDto): Promise<Album> {
     const album = await this.findOne(id);
-    
+
     // Only update fields that are provided
     if (updateAlbumDto.name !== undefined) {
       album.name = updateAlbumDto.name;

@@ -45,7 +45,7 @@ export class ArtistsService {
 
   async update(id: string, updateArtistDto: UpdateArtistDto): Promise<Artist> {
     const artist = await this.findOne(id);
-    
+
     // Only update fields that are provided
     if (updateArtistDto.name !== undefined) {
       artist.name = updateArtistDto.name;
