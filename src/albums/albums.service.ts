@@ -19,11 +19,18 @@ export class AlbumsService {
   }
 
   async findOne(id: string): Promise<Album> {
-    const album = await this.albumsRepository.findOne({ where: { id } });
-    if (!album) {
+    try {
+      const album = await this.albumsRepository.findOneBy({ id });
+      if (!album) {
+        throw new NotFoundException('Album not found');
+      }
+      return album;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new NotFoundException('Album not found');
     }
-    return album;
   }
 
   async create(createAlbumDto: CreateAlbumDto): Promise<Album> {

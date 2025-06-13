@@ -24,6 +24,8 @@ import { Track } from './tracks/entities/track.entity';
       entities: [User, Artist, Album, Track],
       synchronize: true,
       autoLoadEntities: true,
+      retryAttempts: 10,
+      retryDelay: 3000,
     }),
     UsersModule,
     ArtistsModule,

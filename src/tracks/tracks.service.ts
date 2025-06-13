@@ -17,11 +17,18 @@ export class TracksService {
   }
 
   async findOne(id: string): Promise<Track> {
-    const track = await this.tracksRepository.findOne({ where: { id } });
-    if (!track) {
+    try {
+      const track = await this.tracksRepository.findOneBy({ id });
+      if (!track) {
+        throw new NotFoundException('Track not found');
+      }
+      return track;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new NotFoundException('Track not found');
     }
-    return track;
   }
 
   async create(createTrackDto: CreateTrackDto): Promise<Track> {
@@ -34,11 +41,7 @@ export class TracksService {
   }
 
   async update(id: string, updateTrackDto: UpdateTrackDto): Promise<Track> {
-    const track = await this.tracksRepository.findOne({ where: { id } });
-    if (!track) {
-      throw new NotFoundException('Track not found');
-    }
-
+    const track = await this.findOne(id);
     Object.assign(track, updateTrackDto);
     return this.tracksRepository.save(track);
   }

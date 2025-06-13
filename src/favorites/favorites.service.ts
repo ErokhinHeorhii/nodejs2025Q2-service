@@ -22,47 +22,47 @@ export class FavoritesService {
     private readonly tracksService: TracksService,
   ) {}
 
-  findAll() {
-    const artists = this.favoriteArtists
-      .map((id) => {
+  async findAll() {
+    const artists = await Promise.all(
+      this.favoriteArtists.map(async (id) => {
         try {
-          return this.artistsService.findOne(id);
+          return await this.artistsService.findOne(id);
         } catch {
           return null;
         }
-      })
-      .filter((artist) => artist !== null);
+      }),
+    );
 
-    const albums = this.favoriteAlbums
-      .map((id) => {
+    const albums = await Promise.all(
+      this.favoriteAlbums.map(async (id) => {
         try {
-          return this.albumsService.findOne(id);
+          return await this.albumsService.findOne(id);
         } catch {
           return null;
         }
-      })
-      .filter((album) => album !== null);
+      }),
+    );
 
-    const tracks = this.favoriteTracks
-      .map((id) => {
+    const tracks = await Promise.all(
+      this.favoriteTracks.map(async (id) => {
         try {
-          return this.tracksService.findOne(id);
+          return await this.tracksService.findOne(id);
         } catch {
           return null;
         }
-      })
-      .filter((track) => track !== null);
+      }),
+    );
 
     return {
-      artists,
-      albums,
-      tracks,
+      artists: artists.filter((artist) => artist !== null),
+      albums: albums.filter((album) => album !== null),
+      tracks: tracks.filter((track) => track !== null),
     };
   }
 
-  addArtist(id: string): void {
+  async addArtist(id: string): Promise<void> {
     try {
-      const artist = this.artistsService.findOne(id);
+      await this.artistsService.findOne(id);
       if (!this.favoriteArtists.includes(id)) {
         this.favoriteArtists.push(id);
       }
@@ -71,9 +71,9 @@ export class FavoritesService {
     }
   }
 
-  addAlbum(id: string): void {
+  async addAlbum(id: string): Promise<void> {
     try {
-      const album = this.albumsService.findOne(id);
+      await this.albumsService.findOne(id);
       if (!this.favoriteAlbums.includes(id)) {
         this.favoriteAlbums.push(id);
       }
@@ -82,9 +82,9 @@ export class FavoritesService {
     }
   }
 
-  addTrack(id: string): void {
+  async addTrack(id: string): Promise<void> {
     try {
-      const track = this.tracksService.findOne(id);
+      await this.tracksService.findOne(id);
       if (!this.favoriteTracks.includes(id)) {
         this.favoriteTracks.push(id);
       }

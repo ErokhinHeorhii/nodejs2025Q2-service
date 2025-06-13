@@ -21,11 +21,18 @@ export class ArtistsService {
   }
 
   async findOne(id: string): Promise<Artist> {
-    const artist = await this.artistsRepository.findOne({ where: { id } });
-    if (!artist) {
+    try {
+      const artist = await this.artistsRepository.findOneBy({ id });
+      if (!artist) {
+        throw new NotFoundException('Artist not found');
+      }
+      return artist;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new NotFoundException('Artist not found');
     }
-    return artist;
   }
 
   async create(createArtistDto: CreateArtistDto): Promise<Artist> {

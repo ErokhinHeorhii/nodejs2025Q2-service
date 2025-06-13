@@ -24,7 +24,7 @@ export class AlbumsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.albumsService.findOne(id);
   }
 
@@ -37,7 +37,7 @@ export class AlbumsController {
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateAlbumDto: UpdateAlbumDto,
   ) {
     return this.albumsService.update(id, updateAlbumDto);
@@ -45,7 +45,7 @@ export class AlbumsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.albumsService.remove(id);
   }
 }

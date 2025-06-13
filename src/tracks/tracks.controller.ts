@@ -24,7 +24,7 @@ export class TracksController {
   }
 
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.tracksService.findOne(id);
   }
 
@@ -37,7 +37,7 @@ export class TracksController {
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateTrackDto: UpdateTrackDto,
   ) {
     return this.tracksService.update(id, updateTrackDto);
@@ -45,7 +45,7 @@ export class TracksController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.tracksService.remove(id);
   }
 }
