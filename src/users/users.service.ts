@@ -10,12 +10,14 @@ import { UserResponse } from './interfaces/user-response.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import * as bcrypt from 'bcrypt';
+import { CustomLogger } from '../logging/logging.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly logger: CustomLogger,
   ) {}
 
   private mapToResponse(user: User): UserResponse {
@@ -25,19 +27,31 @@ export class UsersService {
   }
 
   async findAll(): Promise<UserResponse[]> {
+    this.logger.log('Getting all users');
     const users = await this.usersRepository.find();
     return users.map(this.mapToResponse);
   }
 
   async findOne(id: string): Promise<UserResponse> {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
+    try {
+      this.logger.log(`Finding user with id ${id}`);
+      const user = await this.usersRepository.findOne({ where: { id } });
+      if (!user) {
+        this.logger.warn(`User with id ${id} not found`);
+        throw new NotFoundException('User not found');
+      }
+      return this.mapToResponse(user);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error('Error finding user', error.stack);
       throw new NotFoundException('User not found');
     }
-    return this.mapToResponse(user);
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    this.logger.log(`Creating new user: ${createUserDto.login}`);
     const salt = await bcrypt.genSalt(Number(process.env.CRYPT_SALT));
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
@@ -53,6 +67,7 @@ export class UsersService {
     id: string,
     updatePasswordDto: UpdatePasswordDto,
   ): Promise<UserResponse> {
+    this.logger.log(`Updating user with id ${id}`);
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -75,8 +90,10 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
+    this.logger.log(`Removing user with id ${id}`);
     const result = await this.usersRepository.delete(id);
     if (result.affected === 0) {
+      this.logger.warn(`User with id ${id} not found for removal`);
       throw new NotFoundException('User not found');
     }
   }

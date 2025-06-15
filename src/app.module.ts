@@ -11,9 +11,11 @@ import { User } from './users/entities/user.entity';
 import { Artist } from './artists/entities/artist.entity';
 import { Album } from './albums/entities/album.entity';
 import { Track } from './tracks/entities/track.entity';
+import { LoggingModule } from './logging/logging.module';
 
 @Module({
   imports: [
+    LoggingModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'postgres',

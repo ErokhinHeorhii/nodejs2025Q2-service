@@ -5,74 +5,48 @@ import { Album } from './entities/album.entity';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { TracksService } from '../tracks/tracks.service';
+import { CustomLogger } from '../logging/logging.service';
 
 @Injectable()
 export class AlbumsService {
   constructor(
     @InjectRepository(Album)
-    private albumsRepository: Repository<Album>,
+    private readonly albumsRepository: Repository<Album>,
     private readonly tracksService: TracksService,
+    private readonly logger: CustomLogger,
   ) {}
 
   async findAll(): Promise<Album[]> {
+    this.logger.log('Getting all albums');
     return this.albumsRepository.find();
   }
 
   async findOne(id: string): Promise<Album> {
-    try {
-      const album = await this.albumsRepository.findOneBy({ id });
-      if (!album) {
-        throw new NotFoundException('Album not found');
-      }
-      return album;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
+    this.logger.log(`Finding album with id ${id}`);
+    const album = await this.albumsRepository.findOne({ where: { id } });
+    if (!album) {
+      this.logger.warn(`Album with id ${id} not found`);
       throw new NotFoundException('Album not found');
     }
+    return album;
   }
 
   async create(createAlbumDto: CreateAlbumDto): Promise<Album> {
-    const album = this.albumsRepository.create({
-      name: createAlbumDto.name,
-      year: createAlbumDto.year,
-      artistId: createAlbumDto.artistId || null,
-    });
+    this.logger.log(`Creating new album: ${createAlbumDto.name}`);
+    const album = this.albumsRepository.create(createAlbumDto);
     return this.albumsRepository.save(album);
   }
 
   async update(id: string, updateAlbumDto: UpdateAlbumDto): Promise<Album> {
+    this.logger.log(`Updating album with id ${id}`);
     const album = await this.findOne(id);
-
-    // Only update fields that are provided
-    if (updateAlbumDto.name !== undefined) {
-      album.name = updateAlbumDto.name;
-    }
-    if (updateAlbumDto.year !== undefined) {
-      album.year = updateAlbumDto.year;
-    }
-    if (updateAlbumDto.artistId !== undefined) {
-      album.artistId = updateAlbumDto.artistId;
-    }
-
+    Object.assign(album, updateAlbumDto);
     return this.albumsRepository.save(album);
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.albumsRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException('Album not found');
-    }
-
-    // Set albumId to null for all tracks that reference this album
-    const tracks = await this.tracksService.findAll();
-    await Promise.all(
-      tracks
-        .filter((track) => track.albumId === id)
-        .map((track) =>
-          this.tracksService.update(track.id, { ...track, albumId: null }),
-        ),
-    );
+    this.logger.log(`Removing album with id ${id}`);
+    const album = await this.findOne(id);
+    await this.albumsRepository.remove(album);
   }
 }
