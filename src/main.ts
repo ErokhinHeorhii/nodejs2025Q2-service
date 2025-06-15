@@ -2,9 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { CustomLogger } from './logging/logging.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const logger = app.get(CustomLogger);
 
   // Enable CORS
   app.enableCors();
@@ -25,6 +27,16 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('doc', app, document);
+
+  process.on('uncaughtException', (error: Error) => {
+    logger.error('Uncaught Exception:', error.stack);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason: any) => {
+    logger.error('Unhandled Rejection:', reason);
+    process.exit(1);
+  });
 
   const port = process.env.PORT || 4000;
   await app.listen(port);
