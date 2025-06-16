@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -16,7 +10,7 @@ export class User {
   })
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   @ApiProperty({
     description: 'The login of the user',
     example: 'john_doe',
@@ -37,14 +31,12 @@ export class User {
   })
   version: number;
 
-  @CreateDateColumn({ type: 'timestamp' })
   @ApiProperty({
     description: 'The timestamp when the user was created',
     example: 1625097600000,
   })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
   @ApiProperty({
     description: 'The timestamp when the user was last updated',
     example: 1625097600000,

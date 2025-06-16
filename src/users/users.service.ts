@@ -50,16 +50,8 @@ export class UsersService {
     }
   }
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    this.logger.log(`Creating new user: ${createUserDto.login}`);
-    const salt = await bcrypt.genSalt(Number(process.env.CRYPT_SALT));
-    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-
-    const user = this.usersRepository.create({
-      login: createUserDto.login,
-      password: hashedPassword,
-    });
-
+  async create(userData: { login: string; password: string }): Promise<User> {
+    const user = this.usersRepository.create(userData);
     return this.usersRepository.save(user);
   }
 
@@ -96,5 +88,9 @@ export class UsersService {
       this.logger.warn(`User with id ${id} not found for removal`);
       throw new NotFoundException('User not found');
     }
+  }
+
+  async findByLogin(login: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { login } });
   }
 }
